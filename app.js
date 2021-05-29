@@ -4,42 +4,45 @@ const e = require('express');
 const PORT = process.env.PORT || 3306;
 const app = express();
 app.use(bodyParser.json());
-const { Client } = require('pg');
+const pg = require('pg')
 
 
 //Datos de la conexion a postgresql
 const connectionData = {
-    user: 'postgres',
     host: 'localhost',
-    database: 'node20_mysql',
-    password: '270201',
     port: 5432,
+    user: 'postgres',
+    password: '270201',
+    database: 'node20_mysql'
 
 };
-const client = new Client(connectionData);
+const pool = new pg.Pool(connectionData);
+
 //Route
 app.get('/', (req, res) => {
     res.send('Test de la API!');
 });
 // Todas las mascotas
 app.get('/pets', (req, res) => {
-    client.connect()
-    client.query('SELECT * FROM pets')
-        .then(results => {
-            if (results.length > 0) {
-                res.json(results);
-            } else {
-                res.send('Not result');
-            }
-        })
-        .catch(err => {
-            client.end()
-        })
-   
+    pool.connect(function(err, client, done) {
+        if(err) {
+          return console.error('connexion error', err);
+        }
+        client.query("select * from pets", function(err, result) {
+          done();
+      
+          if(err) {
+            return console.error('error running query', err);
+          }    
+          res.json(result.rows);  
+        });
+    }); 
 });
+
 //Agregamos mascotas
 app.post('/add', (req, res) => {
-    res.send('New Pet')
+   const sql = "insert into pets set ?";
+   
 });
 //Modificamos los datos de las mascotas
 app.put('/update/:id', (req, res) => {
@@ -47,11 +50,41 @@ app.put('/update/:id', (req, res) => {
 })
 //Eliminamos una mascota
 app.delete('/delete/:id', (req, res) => {
-    res.send('Delete pet');
+    var id= req.params.id;
+  
+
+    pool.connect(function(err, client, done) {
+        if(err) {
+          return console.error('conexion error', err);
+        }
+        client.query("Delete from pets where id="+id, function(err, result) {
+          done();
+      
+          if(err) {
+            return console.error('error running query', err);
+          }    
+          res.json(result.rows);   
+        });
+    });
 });
 // Mascotas por id
 app.get('/pets/:id', (req, res) => {
-    res.send('Get pets by id');
+    var id= req.params.id;
+   
+
+    pool.connect(function(err, client, done) {
+        if(err) {
+          return console.error('conexion error', err);
+        }
+        client.query("select * from pets where id="+id, function(err, result) {
+          done();
+      
+          if(err) {
+            return console.error('error running query', err);
+          }    
+          res.json(result.rows);   
+        });
+    });
 });
 
 /* Comprobamos la conexion
