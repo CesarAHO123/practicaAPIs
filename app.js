@@ -1,9 +1,10 @@
 /*
-Api para manejar mascotas creada por medio de nodejs y postgresql.
+Api para manejar mascotas creada por medio de nodejs, express y postgresql
+Las mascotas cuentan con un id, nombre, raza, edad e imagen.
+El id no se tiene que ingresar ya que la bd se autoincrementa.
+Id es un integer y todos los demas son varchar(100)
+El campo de imagen es para guardar la direccion de la imagen que queramos mostrar.
 */
-
-
-
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -12,7 +13,7 @@ const PORT = process.env.PORT || 3306;
 const app = express();
 app.use(bodyParser.json());
 const pg = require('pg')
-//Datos de la conexion a postgresql
+//Datos de la conexion local de postgresql
 const connectionData = {
     host: 'localhost',
     port: 5432,
@@ -22,7 +23,15 @@ const connectionData = {
 
 };
 const pool = new pg.Pool(connectionData);
-//Agregamos mascotas
+/*Agregamos mascotas
+Las mascotas se agregan por medio de un json en el body de la peticion. Un ejemplo de un json valido: 
+{
+    "nombre":"Pedro",
+    "raza": "Pitbull",
+    "edad": "5",
+    "imagen": "imagen.jpg"
+}
+*/
 app.post('/add', (req, res) => {
     const nombre= req.body.nombre
     const raza =req.body.raza
@@ -39,7 +48,7 @@ app.post('/add', (req, res) => {
       if(err) {
         return console.error('error running query', err);
       }    
-      res.send(sql);   
+      res.send("Se agrego la mascota");   
     });
 });
 });
